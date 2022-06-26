@@ -97,27 +97,27 @@ const displayMovements = (movements, sort = false) => {
 };
 
 // display the remain balance of this account
-const calcDisplayBalance = account => {
-  account.balance = account.reduce((acc, mov) => acc + mov, 0);
-  labelBalance.textContent = `${account.balance}€`;
+const calcDisplayBalance = acc => {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${acc.balance}€`;
 };
 
 // summarize the situations about incomes, withdrawal and interest,
 // and write those info in the summary panel
-const calcDisplaySummary = account => {
-  const incomes = account.movements
-    .filter(movement => movement > 0)
+const calcDisplaySummary = acc => {
+  const incomes = acc.movements
+    .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
   labelSumIn.textContent = `${incomes}€`;
 
-  const out = account.movements
-    .filter(movement => movement < 0)
+  const out = acc.movements
+    .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
   labelSumOut.textContent = `${Math.abs(out)}€`;
 
-  const interest = account.movements
-    .filter(movement => movement > 0)
-    .map(deposit => (deposit * account.interestRate) / 100)
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
     .filter(interest => interest >= 1)
     .reduce((acc, int) => acc + int, 0);
   labelSumInterest.textContent = `${interest}€`;
@@ -125,8 +125,8 @@ const calcDisplaySummary = account => {
 
 // create unique names for the existing accounts with those full names
 const createUsernames = accs => {
-  accs.forEach(account => {
-    account.username = account.owner
+  accs.forEach(acc => {
+    acc.username = acc.owner
       .toLowerCase()
       .split(' ')
       .map(part => part[0])
@@ -136,13 +136,13 @@ const createUsernames = accs => {
 createUsernames(accounts);
 
 // update the UI of the panels
-const updateUI = account => {
+const updateUI = acc => {
   // display UI and message
-  displayMovements(account.movement);
+  displayMovements(acc.movements);
   // clear input fields
-  calcDisplayBalance(account);
+  calcDisplayBalance(acc);
   // update UI
-  calcDisplaySummary(account);
+  calcDisplaySummary(acc);
 };
 
 ///////////////////////////////
@@ -154,13 +154,13 @@ let currentAccount;
 // login the banking system with an account
 btnLogin.addEventListener('click', event => {
   // prevent the form from submitting
-  // event.preventDefault();
+  event.preventDefault();
 
   currentAccount = accounts.find(
-    acc => acc.username === inputCloseUsername.value
+    acc => acc.username === inputLoginUsername.value
   );
 
-  if (currentAccount?.pin === Number(inputClosePin.value)) {
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
     // display UI and message
     labelWelcome.textContent = `Welcome back, ${
       currentAccount.owner.split(' ')[0]
@@ -171,19 +171,18 @@ btnLogin.addEventListener('click', event => {
     inputLoginPin.blur();
 
     updateUI(currentAccount);
-  } else {
-    alert('Your account does not exist.');
   }
 });
 
 // transfer transaction between two existing accounts in the banking system
 btnTransfer.addEventListener('click', event => {
   event.preventDefault();
+
   const amount = Number(inputTransferAmount.value);
   const receiverAcc = accounts.find(
     acc => acc.username === inputTransferTo.value
   );
-  inputLoginUsername.value = inputLoginPin.value = '';
+  inputTransferAmount.value = inputTransferTo.value = '';
 
   if (
     amount > 0 &&
@@ -209,8 +208,6 @@ btnLoan.addEventListener('click', event => {
 
     // update UI
     updateUI(currentAccount);
-  } else {
-    alert('Your loan request amount is not valid.');
   }
 });
 
@@ -229,11 +226,9 @@ btnClose.addEventListener('click', event => {
     accounts.splice(index, 1);
     alert('Your account has been removed.');
     // hide UI
-    containerApp.getElementsByClassName.opacity = 0;
-  } else {
-    alert('Your input account does not exist.');
+    containerApp.style.opacity = 0;
   }
-  inputTransferAmount.value = inputClosePin.value = '';
+  inputCloseUsername.value = inputClosePin.value = '';
   // .indexof()
 });
 
@@ -241,6 +236,7 @@ btnClose.addEventListener('click', event => {
 let sorted = false;
 btnSort.addEventListener('click', event => {
   event.preventDefault();
+
   displayMovements(currentAccount.movements, !sorted);
   sorted = !sorted;
 });
