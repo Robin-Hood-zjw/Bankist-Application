@@ -5,4 +5,4 @@ Link: https://robin-hood-zjw.github.io/Bankist-Application/
   <section>Here we go.</section>
 </body>
 
-<img src="Bankist-flowchart.png" width="150px" alt="flowchart">
+<img src="Bankist-flowchart.png" width="800px" alt="flowchart">
